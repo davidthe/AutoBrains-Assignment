@@ -19,8 +19,11 @@ const readData = (filename) => {
   return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
 };
 
-const rectangles = readData('Rect.json'); 
-const points = readData('Point.json');
+const rectangles2D = readData('Rect.json');
+const points2D = readData('Point.json');
+
+const rectangles3D = readData('Rect3D.json');
+const points3D = readData('Point3D.json');
 
 const mergeData = (rectangles, points) => {
   const data = [];
@@ -39,9 +42,11 @@ const mergeData = (rectangles, points) => {
   return data.sort((a, b) => a.timestamp - b.timestamp);
 };
 
-const data = mergeData(rectangles, points);
+const data2D = mergeData(rectangles2D, points2D);
+const data3D = mergeData(rectangles3D, points3D);
 
-const sendData = (ws) => {
+const sendData = (ws, data) => {
+    console.log('sending data')
   data.forEach((item) => {
     setTimeout(() => {
       ws.send(JSON.stringify(item));
@@ -51,5 +56,13 @@ const sendData = (ws) => {
 
 wss.on('connection', (ws) => {
   console.log('Client connected');
-  sendData(ws);
+  
+  ws.on('message', (message) => {// recive request for data from the client
+    message = message.toString()
+    if (message === '2D') {
+      sendData(ws, data2D);
+    } else if (message === '3D') {
+      sendData(ws, data3D);
+    }
+  });
 });
